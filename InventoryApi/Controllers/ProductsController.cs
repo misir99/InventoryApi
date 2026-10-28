@@ -1,6 +1,7 @@
 ﻿using InventoryApi.Models;
 using InventoryApi.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using InventoryApi.Exceptions;
 
 
 
@@ -40,6 +41,24 @@ namespace InventoryApi.Controllers
             return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
         }
 
+        [HttpDelete("{id}")]
 
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                await _repo.DeleteAsync(id);
+                return NoContent();
+
+            }
+            catch (ProductNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+
+            
+
+            
+        }
     }
 }
