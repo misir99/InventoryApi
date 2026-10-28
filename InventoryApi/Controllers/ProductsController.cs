@@ -33,5 +33,13 @@ namespace InventoryApi.Controllers
             return Ok(product);
         }
 
+        [HttpPost]
+        public async Task<ActionResult<Product>> Create(Product product)
+        {
+            await _repo.AddAsync(product);
+            return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
+        }
+
+
     }
 }
