@@ -56,9 +56,24 @@ namespace InventoryApi.Controllers
                 return NotFound(ex.Message);
             }
 
-            
+        }
 
-            
+        [HttpPut("{id}")]
+
+        public async Task<IActionResult> Update(int id, Product product)
+        {
+            if (id != product.Id)
+                return BadRequest("Id se ne podudara");
+           
+            try
+            {
+                await _repo.UpdateAsync(product);
+                return NoContent();
+            }
+            catch (ProductNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
     }
 }
