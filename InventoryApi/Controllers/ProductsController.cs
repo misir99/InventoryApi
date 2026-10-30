@@ -1,7 +1,9 @@
-﻿using InventoryApi.Models;
+﻿using InventoryApi.Dtos;
+using InventoryApi.Exceptions;
+using InventoryApi.Models;
 using InventoryApi.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using InventoryApi.Exceptions;
+
 
 
 
@@ -35,8 +37,16 @@ namespace InventoryApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Product>> Create(Product product)
+        public async Task<ActionResult<Product>> Create(ProductDto dto)
         {
+            var product = new Product
+            {
+                Name = dto.Name,
+                Price = dto.Price,
+                Category = dto.Category,
+                Quantity = dto.Quantity
+            };
+
             await _repo.AddAsync(product);
             return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
         }
@@ -59,12 +69,17 @@ namespace InventoryApi.Controllers
         }
 
         [HttpPut("{id}")]
-
-        public async Task<IActionResult> Update(int id, Product product)
+        public async Task<IActionResult> Update(int id, ProductDto dto)
         {
-            if (id != product.Id)
-                return BadRequest("Id se ne podudara");
-           
+            var product = new Product
+            {
+                Id = id,
+                Name = dto.Name,
+                Price = dto.Price,
+                Category = dto.Category,
+                Quantity = dto.Quantity
+            };
+
             try
             {
                 await _repo.UpdateAsync(product);
