@@ -8,13 +8,14 @@
     <h1>Proizvodi</h1>
     <p id="poruka"></p>
 
-    <h2>Novi proizvod</h2>
+    <h2>Proizvod</h2>
     <div>
         <input id="naziv" placeholder="Naziv" />
         <input id="cijena" type="number" step="0.01" placeholder="Cijena" />
         <input id="kategorija" placeholder="Kategorija" />
         <input id="kolicina" type="number" placeholder="Količina" />
-        <button onclick="dodajProizvod()">Dodaj</button>
+        <button id="gumbDodaj" onclick="dodajProizvod()">Dodaj</button>
+        <button id="gumbSpremi" onclick="spremiIzmjenu()" style="display:none">Spremi izmjene</button>
     </div>
 
     <br />
@@ -34,6 +35,15 @@
     </table>
 
     <script>
+        let urediId = null;
+
+        function ocistiFormu() {
+            document.getElementById("naziv").value = "";
+            document.getElementById("cijena").value = "";
+            document.getElementById("kategorija").value = "";
+            document.getElementById("kolicina").value = "";
+        }
+
         async function ucitajProizvode() {
             const poruka = document.getElementById("poruka");
             const tijelo = document.getElementById("tijelo");
@@ -56,7 +66,10 @@
                             <td>${p.price.toFixed(2)} KM</td>
                             <td>${p.category}</td>
                             <td>${p.quantity}</td>
-                            <td><button onclick="obrisiProizvod(${p.id})">Obriši</button></td>`;
+                            <td>
+                                <button onclick="urediProizvod(${p.id})">Izmijeni</button>
+                                <button onclick="obrisiProizvod(${p.id})">Obriši</button>
+                            </td>`;
                     tijelo.appendChild(red);
                 }
 
@@ -87,10 +100,54 @@
                 return;
             }
 
-            document.getElementById("naziv").value = "";
-            document.getElementById("cijena").value = "";
-            document.getElementById("kategorija").value = "";
-            document.getElementById("kolicina").value = "";
+            ocistiFormu();
+            ucitajProizvode();
+        }
+
+        async function urediProizvod(id) {
+            const odgovor = await fetch("/api/products/" + id);
+            if (!odgovor.ok) {
+                document.getElementById("poruka").textContent = "Greška: " + odgovor.status;
+                return;
+            }
+
+            const p = await odgovor.json();
+            document.getElementById("naziv").value = p.name;
+            document.getElementById("cijena").value = p.price;
+            document.getElementById("kategorija").value = p.category;
+            document.getElementById("kolicina").value = p.quantity;
+
+            urediId = p.id;
+            document.getElementById("gumbDodaj").style.display = "none";
+            document.getElementById("gumbSpremi").style.display = "inline";
+        }
+
+        async function spremiIzmjenu() {
+            const poruka = document.getElementById("poruka");
+
+            const proizvod = {
+                id: urediId,
+                name: document.getElementById("naziv").value,
+                price: parseFloat(document.getElementById("cijena").value),
+                category: document.getElementById("kategorija").value,
+                quantity: parseInt(document.getElementById("kolicina").value)
+            };
+
+            const odgovor = await fetch("/api/products/" + urediId, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(proizvod)
+            });
+
+            if (!odgovor.ok) {
+                poruka.textContent = "Greška pri spremanju: " + odgovor.status;
+                return;
+            }
+
+            urediId = null;
+            ocistiFormu();
+            document.getElementById("gumbDodaj").style.display = "inline";
+            document.getElementById("gumbSpremi").style.display = "none";
             ucitajProizvode();
         }
 
